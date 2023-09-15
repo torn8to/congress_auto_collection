@@ -16,14 +16,26 @@ import datetime
 class transaction:
     def __init__(self, name, reportDate, transactionDate, representative, assetName, assetType, amount, transactionType,
                  Ticker, house):
-        self.name = name
+        self.name = name.strip()
         self.reportDate = reportDate
         self.transactionDate = transactionDate
         self.assetName = assetName
         self.assetType = assetType
         self.transactionType = transactionType
+        self.ticker = Ticker
         self.house = house
 
+    def to_dict(self):
+        return{
+            'name':self.name,
+            'reportDate':self.reportDate,
+            'transactionDate':self.transactionDate,
+            'assetName':self.assetName,
+            'assetType':self.assetType,
+            'ticker':self.ticker,
+            'transactionType':self.transactionType,
+            'house':self.house
+        }
 
 class senatePTREntry:
     def __init__(self, name, date, link: str, isPaper=False):
@@ -35,6 +47,7 @@ class senatePTREntry:
             self.isPaper = True
         self.transactions = []
         self.type = 'S'
+
 
 
 def is_last_page(driver):
@@ -147,30 +160,34 @@ def parse_html(page_content, line_item):
         transactionDate = columns[1].text
         ticker = columns[3].text
         assetName = columns[4].text
-        assetType:str = columns[6].text
+        assetType:str = columns[5].text
         amount = columns[7].text
         transactionType = columns[6].text
         name = line_item.name
         date = line_item.date
         #transaction_type_cleaning
-        transactiontype  =  "P"if "sale" in transactionType.lower() else "S"
+        transactiontype  =  "S" if "sale" in transactionType.lower()\
+            else "E" if "exch" in transactionType.lower() else "P"
 
-        if "--" not in ticker:
+        if "--" not in ticker :
             line_item.transactions.append(transaction(name,
                                                         date,
-                                                        transactionDate,
+                                                        transactionDate.strip(),
                                                         None,
-                                                        assetName,
-                                                        assetType,
+                                                        assetName.strip(),
+                                                        assetType.strip(),
                                                         amount,
-                                                        transactionType,
-                                                        ticker,
+                                                        transactionType.strip(),
+                                                        ticker.strip(),
                                                         'S'))
             print("added transactions from " + str(line_item.link))
         else:
             print("skipped a non stock sentate transaction")
     return line_item
 
+
+def parse_vision(driver, line_item):
+    print("vision parsing of uploaded image " + line_item.link)
 def run_senate_collection():
     driver: webdriver.Chrome()
     llist: list[list[senatePTREntry]]
@@ -178,8 +195,11 @@ def run_senate_collection():
     pickle.dump(llist,open('place_holder.pkl','wb'))
     for x in range(len(llist)):
         for y in range(len(llist[x])):
-            driver.get(llist[x][y].link)
+            line_item = llist[x][y]
+            driver.get(line_item.link)
             if '/ptr/' in llist[x][y].link:
                 page_content = driver.page_source
-                parse_html(page_content,driver[x][y])
+                llist[x][y] = parse_html(page_content,line_item)
+            else:
+                parse_vision(page_content,line_item)
     return llist
