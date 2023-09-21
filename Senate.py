@@ -20,6 +20,7 @@ class transaction:
         self.reportDate = reportDate
         self.transactionDate = transactionDate
         self.assetName = assetName
+        self.amount = amount
         self.assetType = assetType
         self.transactionType = transactionType
         self.ticker = Ticker
@@ -31,6 +32,7 @@ class transaction:
             'reportDate':self.reportDate,
             'transactionDate':self.transactionDate,
             'assetName':self.assetName,
+            'amount':self.amount,
             'assetType':self.assetType,
             'ticker':self.ticker,
             'transactionType':self.transactionType,

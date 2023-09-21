@@ -14,7 +14,10 @@ from selenium import webdriver
 from Senate import parse_html
 from selenium.webdriver.common.by import By
 import cv2 as cv
-
+import pickle
+from House import housePTRentry
+import tempfile
+data = pickle.load(open('2022pol.data','rb'))
 if __name__ == '__main__':
     '''
     #pickle.dump(run_senate_collection(), open('senate_transactions1.pkl','wb'))
